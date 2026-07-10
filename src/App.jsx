@@ -15,6 +15,7 @@ import {
 
 const MAX_REROLLS = 3;
 const USER_SEED_KEY = "ne-segodnya:user-seed-v1";
+const assetUrl = (filename) => `${import.meta.env.BASE_URL}${filename}`;
 
 const PLANETS = [
   ["Меркурий", "пересекает теневой сектор"],
@@ -236,13 +237,17 @@ export function App() {
 
   return (
     <main className="stage">
-      <section className="mobile-prototype" aria-label="Ежедневный мистический прогноз">
-        <img className="cosmic-background" src="/cosmic-bg.png" alt="" />
+      <section
+        className="mobile-prototype"
+        aria-label="Ежедневный мистический прогноз"
+        style={{ "--cosmic-bg": `url(${assetUrl("cosmic-bg.png")})` }}
+      >
+        <img className="cosmic-background" src={assetUrl("cosmic-bg.png")} alt="" />
 
         <div className="app-shell">
           <header className="topbar">
             <div className="brand">
-              <img src="/astral-chart.png" alt="" />
+              <img src={assetUrl("astral-chart.png")} alt="" />
               <span>НЕ СЕГОДНЯ</span>
             </div>
             <button className="date-button" type="button" onClick={openCalendar} aria-label="Выбрать дату">
@@ -254,7 +259,7 @@ export function App() {
 
           <section className="hero" aria-labelledby="verdict-title">
             <div className="chart-wrap">
-              <img className="astral-chart" src="/astral-chart.png" alt="Астрологическая карта сегодняшнего дня" />
+              <img className="astral-chart" src={assetUrl("astral-chart.png")} alt="Астрологическая карта сегодняшнего дня" />
             </div>
             <div className="star-divider" aria-hidden="true"><Sparkle size={11} weight="fill" /></div>
             <p className="day-number">
@@ -267,11 +272,11 @@ export function App() {
 
           <div className="actions">
             <button className="primary-button" type="button" onClick={() => setProofOpen(true)}>
-              <span className="button-orb"><img src="/astral-chart.png" alt="" /></span>
+              <span className="button-orb"><img src={assetUrl("astral-chart.png")} alt="" /></span>
               <span>Показать обоснование</span>
             </button>
             <button className="orb-trigger" type="button" onClick={() => setOrbOpen(true)}>
-              <img src="/magic-orb.png" alt="" />
+              <img src={assetUrl("magic-orb.png")} alt="" />
               <span>{rerollsLeft > 0 ? `Крутить шар · ${rerollsLeft}/3` : "Шар молчит до завтра"}</span>
             </button>
           </div>
@@ -300,7 +305,7 @@ export function App() {
               </div>
 
               <button className={`orb-stage ${spinning ? "is-spinning" : ""}`} type="button" onClick={spinOrb} disabled={spinning || rerollsLeft <= 0} aria-label="Крутить магический шар">
-                <img src="/magic-orb.png" alt="Магический шар с персональным знаком" />
+                <img src={assetUrl("magic-orb.png")} alt="Магический шар с персональным знаком" />
               </button>
 
               <p className="orb-copy">
@@ -359,7 +364,7 @@ export function App() {
           </div>
 
           <div className="proof-content">
-            <img className="proof-seal" src="/astral-chart.png" alt="Космическая печать" />
+            <img className="proof-seal" src={assetUrl("astral-chart.png")} alt="Космическая печать" />
             <p className="proof-code">{reason.code}</p>
             <p className="proof-date">{formatDate(selectedDate)}</p>
             <h2 id="proof-title">Работа сегодня противопоказана</h2>

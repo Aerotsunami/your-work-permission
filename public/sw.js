@@ -1,12 +1,14 @@
-const CACHE = "ne-segodnya-v4";
+const CACHE = "ne-segodnya-v5";
+const BASE = new URL(self.registration.scope).pathname.replace(/\/$/, "");
+const assetPath = (path) => `${BASE}/${path}`;
 const ASSETS = [
-  "/",
-  "/manifest.webmanifest",
-  "/cosmic-bg.png",
-  "/astral-chart.png",
-  "/magic-orb.png",
-  "/icon-192.png",
-  "/icon-512.png"
+  `${BASE}/`,
+  assetPath("manifest.webmanifest"),
+  assetPath("cosmic-bg.png"),
+  assetPath("astral-chart.png"),
+  assetPath("magic-orb.png"),
+  assetPath("icon-192.png"),
+  assetPath("icon-512.png")
 ];
 
 self.addEventListener("install", (event) => {
@@ -14,13 +16,13 @@ self.addEventListener("install", (event) => {
     const cache = await caches.open(CACHE);
     await cache.addAll(ASSETS);
 
-    const shellResponse = await fetch("/", { cache: "reload" });
+    const shellResponse = await fetch(`${BASE}/`, { cache: "reload" });
     const shellText = await shellResponse.clone().text();
-    await cache.put("/", shellResponse);
+    await cache.put(`${BASE}/`, shellResponse);
 
     const buildAssets = [...shellText.matchAll(/(?:src|href)="([^"]+)"/g)]
       .map((match) => match[1])
-      .filter((url) => url.startsWith("/") && !ASSETS.includes(url));
+      .filter((url) => url.startsWith(`${BASE}/`) && !ASSETS.includes(url));
 
     await cache.addAll(buildAssets);
   })());
@@ -47,7 +49,7 @@ self.addEventListener("fetch", (event) => {
       if (response.ok) await cache.put(event.request, response.clone());
       return response;
     } catch (error) {
-      if (event.request.mode === "navigate") return cache.match("/");
+      if (event.request.mode === "navigate") return cache.match(`${BASE}/`);
       throw error;
     }
   })());
