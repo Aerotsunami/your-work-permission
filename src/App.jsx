@@ -99,6 +99,32 @@ const VERDICTS = [
   "Космос отменил задачи",
   "Сегодня — режим покоя",
   "Обязательства не принимаются",
+  "Рабочий день аннулирован",
+  "Звёзды отклонили труд",
+  "Дедлайны лишены силы",
+  "Действует запрет на работу",
+  "Оракул требует выходной",
+  "Карьера поставлена на паузу",
+  "Продуктивность перенесена",
+];
+
+const EXPLANATION_TEMPLATES = [
+  ({ planet, state, house, omen, impact, remedy }) =>
+    `${planet} ${state} ${house}, ${omen}. ${impact} ${remedy}`,
+  ({ planet, state, house, omen, impact, remedy }) =>
+    `${impact} Астрологическая причина: ${planet} ${state} ${house}; ${omen}. ${remedy}`,
+  ({ planet, state, house, omen, remedy }) =>
+    `Оракул отмечает сочетание: ${planet} ${state} ${house}. Дополнительный знак — ${omen}. ${remedy}`,
+  ({ planet, state, house, impact, remedy }) =>
+    `Рабочий сценарий отклонён: ${planet} ${state} ${house}. ${impact} ${remedy}`,
+  ({ planet, state, house, omen, remedy }) =>
+    `Сначала проявился знак «${planet}», который ${state} ${house}. Затем выяснилось: ${omen}. ${remedy}`,
+  ({ planet, state, house, omen, impact, remedy }) =>
+    `По карте дня ${planet} ${state} ${house}; одновременно ${omen}. Итог: ${impact} ${remedy}`,
+  ({ planet, state, house, omen, impact, remedy }) =>
+    `${remedy} Основание оракула: ${planet} ${state} ${house}, а также ${omen}. ${impact}`,
+  ({ planet, state, house, omen, impact }) =>
+    `Сегодняшняя конфигурация закрыта для дел. ${planet} ${state} ${house}; ${omen}. ${impact}`,
 ];
 
 const formatDate = (date) =>
@@ -154,7 +180,12 @@ const getReason = (date, userSeed, rerollCount) => {
   const house = HOUSES[Math.floor(index / PLANETS.length) % HOUSES.length];
   const [omen, impact] = OMENS[Math.floor(index / (PLANETS.length * HOUSES.length)) % OMENS.length];
   const remedy = REMEDIES[Math.floor(index / (PLANETS.length * HOUSES.length * OMENS.length)) % REMEDIES.length];
-  const verdict = VERDICTS[Math.floor(index / (PLANETS.length * HOUSES.length * OMENS.length * REMEDIES.length)) % VERDICTS.length];
+  const verdictStart = hashString(`${userSeed}:${isoDate(date)}:verdict`) % VERDICTS.length;
+  const verdict = VERDICTS[(verdictStart + rerollCount) % VERDICTS.length];
+  const templateStart = hashString(`${userSeed}:${isoDate(date)}:template`) % EXPLANATION_TEMPLATES.length;
+  const explanationTemplate = EXPLANATION_TEMPLATES[(templateStart + rerollCount) % EXPLANATION_TEMPLATES.length];
+  const cleanOmen = omen.replace(/^(а|и|пока)\s+/i, "");
+  const explanation = explanationTemplate({ planet, state, house, omen: cleanOmen, impact, remedy });
   return {
     day,
     code: `МК-${String(day).padStart(3, "0")}/365 · ${personalMark}-${rerollCount + 1}`,
@@ -163,7 +194,7 @@ const getReason = (date, userSeed, rerollCount) => {
     house,
     personalMark,
     rerollCount,
-    explanation: `${planet} ${state} ${house}, ${omen}. ${impact} ${remedy}`,
+    explanation,
     risk: 86 + ((index * 7) % 14),
   };
 };
