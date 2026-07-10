@@ -17,20 +17,21 @@ const MAX_REROLLS = 3;
 const USER_SEED_KEY = "ne-segodnya:user-seed-v1";
 const assetUrl = (filename) => `${import.meta.env.BASE_URL}${filename}`;
 
+// [название, неблагоприятное состояние, благоприятное состояние]
 const PLANETS = [
-  ["Меркурий", "пересекает теневой сектор"],
-  ["Луна", "остаётся без курса"],
-  ["Венера", "закрывает контур обмена"],
-  ["Марс", "разворачивает импульс внутрь"],
-  ["Юпитер", "увеличивает цену поспешных обещаний"],
-  ["Сатурн", "ставит печать на новых обязательствах"],
-  ["Уран", "нарушает привычный ритм решений"],
-  ["Нептун", "размывает границы срочного"],
-  ["Плутон", "требует полной остановки процессов"],
-  ["Северный узел", "отводит путь от рабочих задач"],
-  ["Хирон", "обнажает уязвимость дедлайнов"],
-  ["Чёрная Луна", "гасит свет деловой инициативы"],
-  ["Белая Луна", "охраняет право на бездействие"],
+  ["Меркурий", "пересекает теневой сектор", "выравнивает деловые орбиты"],
+  ["Луна", "остаётся без курса", "входит в фазу ясных решений"],
+  ["Венера", "закрывает контур обмена", "смягчает переговорные углы"],
+  ["Марс", "разворачивает импульс внутрь", "выдаёт запас рабочей энергии"],
+  ["Юпитер", "увеличивает цену поспешных обещаний", "расширяет окно возможностей"],
+  ["Сатурн", "ставит печать на новых обязательствах", "наводит порядок в сроках"],
+  ["Уран", "нарушает привычный ритм решений", "подбрасывает решение старой задачи"],
+  ["Нептун", "размывает границы срочного", "подсказывает верные формулировки"],
+  ["Плутон", "требует полной остановки процессов", "завершает затянувшийся цикл"],
+  ["Северный узел", "отводит путь от рабочих задач", "указывает на главную задачу дня"],
+  ["Хирон", "обнажает уязвимость дедлайнов", "исцеляет застарелый завал"],
+  ["Чёрная Луна", "гасит свет деловой инициативы", "отступает от рабочего сектора"],
+  ["Белая Луна", "охраняет право на бездействие", "благословляет короткий рывок"],
 ];
 
 const HOUSES = [
@@ -53,78 +54,184 @@ const HOUSES = [
   "в доме тихого восстановления",
 ];
 
-const OMENS = [
-  ["а лунный узел удерживает любые ответы", "Всё отправленное сегодня потребует тройной переделки."],
-  ["пока звёздный меридиан скрыт облаком сомнений", "Даже ясная задача примет противоположный смысл."],
-  ["и печать Альдебарана запрещает спешку", "Каждый дедлайн сегодня является оптической иллюзией."],
-  ["а руна Иса замораживает деловую инициативу", "Попытка ускориться лишь продлит ожидание."],
-  ["пока три теневых аспекта образуют замкнутый круг", "Решения будут возвращаться к исходной точке."],
-  ["и карта дня показывает критический дефицит земной стихии", "Практические действия лишены космической опоры."],
-  ["а северный ветер Оракула стирает контекст", "Любые сообщения будут поняты слишком буквально."],
-  ["пока созвездие Ворона собирает чужие задачи", "Работа незаметно умножится без вашего согласия."],
-  ["и зеркало Нептуна удваивает ошибки", "Одна правка неизбежно породит две новые."],
-  ["а комета молчания проходит над календарём", "Самое продуктивное действие — не отвечать."],
-  ["пока солнечные часы показывают время внутренней тишины", "Внешняя активность нарушит естественный ход событий."],
-  ["и аркан Отшельника выпал лицом к ноутбуку", "Совместная работа сегодня противопоказана."],
-  ["а руна Перт скрывает последствия решений", "Согласие на задачу откроет нежелательную ветвь реальности."],
-  ["пока Сириус не подтверждает полномочия календаря", "Ни одна встреча не обладает достаточной законностью."],
-  ["и фаза тёмной воды отменяет деловые обещания", "Все договорённости лучше оставить до рассвета."],
-  ["а магический квадрат дня не сходится по срокам", "Попытка всё успеть нарушит баланс недели."],
-  ["пока небесный архив проводит переиндексацию судьбы", "Новые дела могут быть безвозвратно потеряны."],
-  ["и знак пустой ладони требует оставить её пустой", "Брать новые задачи сегодня небезопасно."],
-  ["а тринадцатая звезда требует паузы", "Любая занятость будет расценена космосом как самоуправство."],
-];
+// [знак, следствие]
+const OMENS = {
+  neg: [
+    ["лунный узел удерживает любые ответы", "Всё отправленное сегодня потребует тройной переделки."],
+    ["звёздный меридиан скрыт облаком сомнений", "Даже ясная задача примет противоположный смысл."],
+    ["печать Альдебарана запрещает спешку", "Каждый дедлайн сегодня является оптической иллюзией."],
+    ["руна Иса замораживает деловую инициативу", "Попытка ускориться лишь продлит ожидание."],
+    ["три теневых аспекта образуют замкнутый круг", "Решения будут возвращаться к исходной точке."],
+    ["карта дня показывает дефицит земной стихии", "Практические действия лишены космической опоры."],
+    ["северный ветер Оракула стирает контекст", "Любые сообщения будут поняты слишком буквально."],
+    ["созвездие Ворона собирает чужие задачи", "Работа незаметно умножится без вашего согласия."],
+    ["зеркало Нептуна удваивает ошибки", "Одна правка неизбежно породит две новые."],
+    ["комета молчания проходит над календарём", "Самое продуктивное действие — не отвечать."],
+    ["солнечные часы показывают время внутренней тишины", "Внешняя активность нарушит естественный ход событий."],
+    ["аркан Отшельника выпал лицом к ноутбуку", "Совместная работа сегодня противопоказана."],
+    ["руна Перт скрывает последствия решений", "Согласие на задачу откроет нежелательную ветвь реальности."],
+    ["Сириус не подтверждает полномочия календаря", "Ни одна встреча не обладает достаточной законностью."],
+    ["фаза тёмной воды отменяет деловые обещания", "Все договорённости лучше оставить до рассвета."],
+    ["магический квадрат дня не сходится по срокам", "Попытка всё успеть нарушит баланс недели."],
+    ["небесный архив проводит переиндексацию судьбы", "Новые дела могут быть безвозвратно потеряны."],
+    ["знак пустой ладони требует оставить её пустой", "Брать новые задачи сегодня небезопасно."],
+    ["тринадцатая звезда требует паузы", "Любая занятость будет расценена космосом как самоуправство."],
+  ],
+  mid: [
+    ["весы дня застыли между «надо» и «потом»", "Половина задач пройдёт легко, вторая — отложится сама."],
+    ["Меркурий и Луна не договорились о приоритетах", "Начатое до обеда завершится, начатое после — перенесётся."],
+    ["карта дня разделена линией терминатора", "Простые задачи благословлены, сложные — под вопросом."],
+    ["маятник Оракула качается без остановки", "Решения стоит принимать только по чётным часам."],
+    ["руна Соулу светит сквозь облако", "Энергии хватит ровно на половину списка."],
+    ["звёздный меридиан открыт лишь частично", "Письма пройдут, созвоны — на свой страх и риск."],
+    ["Колесо Фортуны застыло на ребре", "Итог дня решит первая же выполненная задача."],
+    ["покровитель трудящихся ушёл в полутень", "Работа возможна, но только по любви, не по принуждению."],
+  ],
+  pos: [
+    ["тройной аспект удачи накрывает рабочий сектор", "Задачи будут решаться быстрее, чем вы успеете их записать."],
+    ["руна Феху развернулась доходной стороной", "Всё сделанное сегодня окупится вдвойне."],
+    ["Сириус подтверждает полномочия вашего календаря", "Каждая встреча пройдёт на удивление по делу."],
+    ["комета вдохновения проходит точно над ноутбуком", "Идеи будут приходить раньше, чем проблемы."],
+    ["магический квадрат дня сошёлся с первого раза", "Дедлайны сегодня играют на вашей стороне."],
+    ["аркан Мага выпал лицом к клавиатуре", "Сложное будет казаться простым — пользуйтесь."],
+    ["небесный архив открыл ваш лучший черновик судьбы", "Начатое сегодня может стать делом года."],
+    ["солнечные часы показывают время громких решений", "Смелые предложения будут услышаны."],
+  ],
+};
 
-const REMEDIES = [
-  "Закройте ноутбук до следующего рассвета.",
-  "Перенесите решения и выберите наблюдение.",
-  "Разрешены только чай, прогулка и редкие сообщения.",
-  "Сохраняйте молчание до смены лунного часа.",
-  "Не начинайте нового и не улучшайте старого.",
-  "Отмените созвоны во имя сохранения реальности.",
-  "Проведите день вне зоны деловой досягаемости.",
-  "Доверьте срочное более благоприятной версии себя.",
-  "Зафиксируйте паузу и не объясняйте её дважды.",
-  "До завтра допустимы только мягкие бытовые ритуалы.",
-  "Любое действие замените внимательным бездействием.",
-  "Сохраните силы: звёзды уже оформили разрешение.",
-  "Оставьте рабочий статус в положении «недоступен».",
-];
+const ADVICE = {
+  neg: [
+    "Закройте ноутбук до следующего рассвета.",
+    "Перенесите решения и выберите наблюдение.",
+    "Разрешены только чай, прогулка и редкие сообщения.",
+    "Сохраняйте молчание до смены лунного часа.",
+    "Не начинайте нового и не улучшайте старого.",
+    "Отмените созвоны во имя сохранения реальности.",
+    "Проведите день вне зоны деловой досягаемости.",
+    "Доверьте срочное более благоприятной версии себя.",
+    "Зафиксируйте паузу и не объясняйте её дважды.",
+    "До завтра допустимы только мягкие бытовые ритуалы.",
+    "Любое действие замените внимательным бездействием.",
+    "Сохраните силы: звёзды уже оформили разрешение.",
+    "Оставьте рабочий статус в положении «недоступен».",
+  ],
+  mid: [
+    "Делайте лёгкое, тяжёлое оставьте звёздам.",
+    "Работайте до первого зевка — сегодня он вещий.",
+    "Один важный шаг — и совесть чиста перед космосом.",
+    "Соглашайтесь на встречи, но не на дедлайны.",
+    "Сегодня половина усилий дороже целых.",
+    "Начинайте с малого: большое подтянется само.",
+    "Перечитывайте написанное дважды — Меркурий подглядывает.",
+  ],
+  pos: [
+    "Берите самое сложное — сегодня оно поддастся.",
+    "Отправляйте смелые письма до заката.",
+    "Ставьте главное на первую половину дня.",
+    "Просите о повышении, пока аспект действует.",
+    "Закройте старый долг — космос спишет проценты.",
+    "Начинайте то, что откладывали с прошлой луны.",
+    "Такой день жалко тратить на прокрастинацию.",
+  ],
+};
 
-const VERDICTS = [
-  "Сегодня работать нельзя",
-  "Труду объявлена пауза",
-  "Дела временно запрещены",
-  "Работа не одобрена небом",
-  "Космос отменил задачи",
-  "Сегодня — режим покоя",
-  "Обязательства не принимаются",
-  "Рабочий день аннулирован",
-  "Звёзды отклонили труд",
-  "Дедлайны лишены силы",
-  "Действует запрет на работу",
-  "Оракул требует выходной",
-  "Карьера поставлена на паузу",
-  "Продуктивность перенесена",
-];
+const TEMPLATES = {
+  neg: [
+    ({ planet, state, house, omen, impact, advice }) =>
+      `${planet} ${state} ${house}, а ${omen}. ${impact} ${advice}`,
+    ({ planet, state, house, omen, impact, advice }) =>
+      `${impact} Причина: ${planet} ${state} ${house}; вдобавок ${omen}. ${advice}`,
+    ({ planet, state, house, omen, advice }) =>
+      `Оракул зафиксировал: ${planet} ${state} ${house}. Дополнительный знак — ${omen}. ${advice}`,
+    ({ planet, state, house, impact, advice }) =>
+      `Рабочий сценарий отклонён: ${planet} ${state} ${house}. ${impact} ${advice}`,
+  ],
+  mid: [
+    ({ planet, state, house, omen, impact, advice }) =>
+      `${planet} ${state} ${house}, при этом ${omen}. ${impact} ${advice}`,
+    ({ planet, state, house, omen, advice }) =>
+      `Карта дня двойственна: ${planet} ${state} ${house}, и ${omen}. ${advice}`,
+    ({ planet, state, house, omen, impact, advice }) =>
+      `${impact} Расклад таков: ${planet} ${state} ${house}; ${omen}. ${advice}`,
+    ({ planet, state, house, omen, impact, advice }) =>
+      `Оракул пожимает плечами: ${planet} ${state} ${house}, но ${omen}. ${impact} ${advice}`,
+  ],
+  pos: [
+    ({ planet, state, house, omen, impact, advice }) =>
+      `${planet} ${state} ${house}, а ${omen}. ${impact} ${advice}`,
+    ({ planet, state, house, omen, impact, advice }) =>
+      `Редкая конфигурация: ${planet} ${state} ${house}; к тому же ${omen}. ${impact} ${advice}`,
+    ({ planet, state, house, omen, impact, advice }) =>
+      `${impact} Основание: ${planet} ${state} ${house}, и ${omen}. ${advice}`,
+    ({ planet, state, house, omen, advice }) =>
+      `Оракул доволен: ${planet} ${state} ${house}. Дополнительный знак — ${omen}. ${advice}`,
+  ],
+};
 
-const EXPLANATION_TEMPLATES = [
-  ({ planet, state, house, omen, impact, remedy }) =>
-    `${planet} ${state} ${house}, ${omen}. ${impact} ${remedy}`,
-  ({ planet, state, house, omen, impact, remedy }) =>
-    `${impact} Астрологическая причина: ${planet} ${state} ${house}; ${omen}. ${remedy}`,
-  ({ planet, state, house, omen, remedy }) =>
-    `Оракул отмечает сочетание: ${planet} ${state} ${house}. Дополнительный знак — ${omen}. ${remedy}`,
-  ({ planet, state, house, impact, remedy }) =>
-    `Рабочий сценарий отклонён: ${planet} ${state} ${house}. ${impact} ${remedy}`,
-  ({ planet, state, house, omen, remedy }) =>
-    `Сначала проявился знак «${planet}», который ${state} ${house}. Затем выяснилось: ${omen}. ${remedy}`,
-  ({ planet, state, house, omen, impact, remedy }) =>
-    `По карте дня ${planet} ${state} ${house}; одновременно ${omen}. Итог: ${impact} ${remedy}`,
-  ({ planet, state, house, omen, impact, remedy }) =>
-    `${remedy} Основание оракула: ${planet} ${state} ${house}, а также ${omen}. ${impact}`,
-  ({ planet, state, house, omen, impact }) =>
-    `Сегодняшняя конфигурация закрыта для дел. ${planet} ${state} ${house}; ${omen}. ${impact}`,
+const TIERS = [
+  {
+    min: 0,
+    polarity: "neg",
+    verdicts: [
+      "Сегодня работать нельзя",
+      "Рабочий день аннулирован",
+      "Космос отменил задачи",
+      "Звёзды отклонили труд",
+      "Действует запрет на работу",
+    ],
+    proofTitle: "Работа сегодня противопоказана",
+    status: "Освобождён от задач",
+  },
+  {
+    min: 15,
+    polarity: "neg",
+    verdicts: [
+      "Шансы на работу призрачны",
+      "Труд сегодня не в фаворе",
+      "Работа под большим вопросом",
+      "Звёзды советуют не спешить",
+      "День почти потерян для дел",
+    ],
+    proofTitle: "Допуск к работе не выдан",
+    status: "Освобождён почти от всего",
+  },
+  {
+    min: 35,
+    polarity: "mid",
+    verdicts: [
+      "День пятьдесят на пятьдесят",
+      "Космос колеблется",
+      "Возможны отдельные подвиги",
+      "Работа на свой страх и риск",
+      "Звёзды не против, но и не за",
+    ],
+    proofTitle: "Допуск выдан частично",
+    status: "Допущен к лёгким задачам",
+  },
+  {
+    min: 60,
+    polarity: "pos",
+    verdicts: [
+      "Окно для работы открыто",
+      "Звёзды скорее за труд",
+      "Работать можно и нужно",
+      "День пригоден для дел",
+    ],
+    proofTitle: "Допуск к работе выдан",
+    status: "Допущен к работе",
+  },
+  {
+    min: 80,
+    polarity: "pos",
+    verdicts: [
+      "Звёзды требуют работать",
+      "Редкий день рабочей силы",
+      "Космос выдал полный допуск",
+      "Идеальный день для великих дел",
+    ],
+    proofTitle: "Полный космический допуск",
+    status: "Обязан работать (по звёздам)",
+  },
 ];
 
 const formatDate = (date) =>
@@ -170,32 +277,48 @@ const readRerolls = (date, userSeed) => {
   return Number.isFinite(value) ? Math.min(MAX_REROLLS, Math.max(0, value)) : 0;
 };
 
-const getReason = (date, userSeed, rerollCount) => {
+const pick = (list, hash, salt) => list[(hash + salt) % list.length];
+
+const getReading = (date, userSeed, rerollCount) => {
   const day = dayOfYear(date);
+  const key = `${userSeed}:${isoDate(date)}:${rerollCount}`;
   const personalHash = hashString(userSeed);
   const personalMark = personalHash.toString(16).padStart(8, "0").slice(-4).toUpperCase();
-  const combinationCount = PLANETS.length * HOUSES.length * OMENS.length * REMEDIES.length * VERDICTS.length;
-  const index = (personalHash + day * 4099 + rerollCount * 7919) % combinationCount;
-  const [planet, state] = PLANETS[index % PLANETS.length];
-  const house = HOUSES[Math.floor(index / PLANETS.length) % HOUSES.length];
-  const [omen, impact] = OMENS[Math.floor(index / (PLANETS.length * HOUSES.length)) % OMENS.length];
-  const remedy = REMEDIES[Math.floor(index / (PLANETS.length * HOUSES.length * OMENS.length)) % REMEDIES.length];
-  const verdictStart = hashString(`${userSeed}:${isoDate(date)}:verdict`) % VERDICTS.length;
-  const verdict = VERDICTS[(verdictStart + rerollCount) % VERDICTS.length];
-  const templateStart = hashString(`${userSeed}:${isoDate(date)}:template`) % EXPLANATION_TEMPLATES.length;
-  const explanationTemplate = EXPLANATION_TEMPLATES[(templateStart + rerollCount) % EXPLANATION_TEMPLATES.length];
-  const cleanOmen = omen.replace(/^(а|и|пока)\s+/i, "");
-  const explanation = explanationTemplate({ planet, state, house, omen: cleanOmen, impact, remedy });
+
+  // Шанс на работу: перекос в сторону низких значений (u^2.4)
+  const u = hashString(`${key}:chance`) / 4294967296;
+  const chance = Math.round(100 * Math.pow(u, 2.4));
+
+  const tier = [...TIERS].reverse().find((item) => chance >= item.min);
+  const { polarity } = tier;
+
+  const detailHash = hashString(`${key}:detail`);
+  const [planet, adverse, favorable] = pick(PLANETS, detailHash, 0);
+  const state =
+    polarity === "neg" ? adverse : polarity === "pos" ? favorable : detailHash % 2 ? adverse : favorable;
+  const house = pick(HOUSES, detailHash, 101);
+  const [omen, impact] = pick(OMENS[polarity], detailHash, 211);
+  const advice = pick(ADVICE[polarity], detailHash, 307);
+  const verdict = pick(tier.verdicts, detailHash, 401);
+  const template = pick(TEMPLATES[polarity], detailHash, 503);
+  const explanation = template({ planet, state, house, omen, impact, advice });
+
+  const risk = Math.min(97, Math.max(3, 100 - chance + ((detailHash % 9) - 4)));
+
   return {
     day,
     code: `МК-${String(day).padStart(3, "0")}/365 · ${personalMark}-${rerollCount + 1}`,
+    chance,
     verdict,
+    proofTitle: tier.proofTitle,
+    status: tier.status,
     planet,
     house,
     personalMark,
     rerollCount,
+    impact,
     explanation,
-    risk: 86 + ((index * 7) % 14),
+    risk,
   };
 };
 
@@ -210,10 +333,10 @@ export function App() {
   const [installPrompt, setInstallPrompt] = useState(null);
   const [rerollCount, setRerollCount] = useState(() => readRerolls(new Date(), userSeed));
   const dateInputRef = useRef(null);
-  const reason = useMemo(() => getReason(selectedDate, userSeed, rerollCount), [selectedDate, userSeed, rerollCount]);
+  const reading = useMemo(() => getReading(selectedDate, userSeed, rerollCount), [selectedDate, userSeed, rerollCount]);
   const rerollsLeft = MAX_REROLLS - rerollCount;
 
-  const shareText = `Космическое обоснование ${reason.code}\n${formatDate(selectedDate)}\n\n${reason.verdict}.\n${reason.explanation}\n\nКосмически убедительно. Научно не подтверждено.`;
+  const shareText = `Космическое обоснование ${reading.code}\n${formatDate(selectedDate)}\n\n${reading.verdict}. Шанс на работу: ${reading.chance}%.\n${reading.explanation}\n\nКосмически убедительно. Научно не подтверждено.`;
 
   useEffect(() => {
     const handleInstall = (event) => {
@@ -262,15 +385,15 @@ export function App() {
       localStorage.setItem(rerollKey(selectedDate, userSeed), String(nextCount));
       setRerollCount(nextCount);
       setSpinning(false);
-      setOrbOpen(false);
-    }, 1100);
+      window.setTimeout(() => setOrbOpen(false), 350);
+    }, 1750);
   };
 
   return (
     <main className="stage">
       <section
         className="mobile-prototype"
-        aria-label="Ежедневный мистический прогноз"
+        aria-label="Ежедневная оценка шансов на работу"
         style={{ "--cosmic-bg": `url(${assetUrl("cosmic-bg.png")})` }}
       >
         <img className="cosmic-background" src={assetUrl("cosmic-bg.png")} alt="" />
@@ -279,7 +402,7 @@ export function App() {
           <header className="topbar">
             <div className="brand">
               <img src={assetUrl("astral-chart.png")} alt="" />
-              <span>НЕ СЕГОДНЯ</span>
+              <span>НЕ СЕГОДНЯ?</span>
             </div>
             <button className="date-button" type="button" onClick={openCalendar} aria-label="Выбрать дату">
               <Sparkle weight="fill" size={13} />
@@ -292,13 +415,17 @@ export function App() {
             <div className="chart-wrap">
               <img className="astral-chart" src={assetUrl("astral-chart.png")} alt="Астрологическая карта сегодняшнего дня" />
             </div>
-            <div className="star-divider" aria-hidden="true"><Sparkle size={11} weight="fill" /></div>
             <p className="day-number">
-              ЗНАК {String(reason.day).padStart(3, "0")} ИЗ 365
+              ЗНАК {String(reading.day).padStart(3, "0")} ИЗ 365
               {rerollCount > 0 && <span> · ПЕРЕБРОС {rerollCount}</span>}
             </p>
-            <h1 id="verdict-title">{reason.verdict}</h1>
-            <p className="reason-copy">{reason.explanation}</p>
+            <h1 id="verdict-title">{reading.verdict}</h1>
+            <div className="chance-meter" role="img" aria-label={`Шанс на работу ${reading.chance} процентов`}>
+              <span className="chance-label">ШАНС НА РАБОТУ</span>
+              <span className="chance-value">{reading.chance}%</span>
+              <span className="chance-track"><span className="chance-fill" style={{ width: `${Math.max(3, reading.chance)}%` }} /></span>
+            </div>
+            <p className="reason-copy">{reading.impact}</p>
           </section>
 
           <div className="actions">
@@ -318,7 +445,7 @@ export function App() {
                 <DownloadSimple size={15} /> Установить приложение
               </button>
             )}
-            <p><FingerprintSimple size={11} /> Личный знак {reason.personalMark} · Космически убедительно.</p>
+            <p><FingerprintSimple size={11} /> Личный знак {reading.personalMark} · Космически убедительно. Научно не подтверждено.</p>
           </footer>
         </div>
 
@@ -327,8 +454,8 @@ export function App() {
             <section className="orb-sheet" role="dialog" aria-modal="true" aria-labelledby="orb-title" onClick={(event) => event.stopPropagation()}>
               <div className="sheet-heading">
                 <div>
-                  <span className="eyebrow">ЛИЧНЫЙ ОРАКУЛ {reason.personalMark}</span>
-                  <h2 id="orb-title">Перебросить знак</h2>
+                  <span className="eyebrow">ЛИЧНЫЙ ОРАКУЛ {reading.personalMark}</span>
+                  <h2 id="orb-title">Спросить ещё раз</h2>
                 </div>
                 <button className="icon-button" type="button" onClick={() => setOrbOpen(false)} disabled={spinning} aria-label="Закрыть шар">
                   <X size={20} />
@@ -340,9 +467,11 @@ export function App() {
               </button>
 
               <p className="orb-copy">
-                {rerollsLeft > 0
-                  ? `Шар проявит другую персональную причину. На этот день осталось перебросов: ${rerollsLeft}.`
-                  : "Все три переброса использованы. Новый заряд появится после полуночи."}
+                {spinning
+                  ? "Звёзды пересчитывают ваши шансы…"
+                  : rerollsLeft > 0
+                    ? `Шар пересчитает шансы этого дня. Осталось вопросов: ${rerollsLeft}.`
+                    : "Все три вопроса заданы. Новый заряд появится после полуночи."}
               </p>
 
               <button className="primary-button compact orb-spin-button" type="button" onClick={spinOrb} disabled={spinning || rerollsLeft <= 0}>
@@ -378,7 +507,7 @@ export function App() {
                   }}
                 />
               </label>
-              <p>В цикле 365 дней. У каждого дня — своё космическое противопоказание к работе.</p>
+              <p>В цикле 365 дней. У каждого дня — свой шанс на работу и своё космическое обоснование.</p>
             </section>
           </div>
         )}
@@ -396,18 +525,19 @@ export function App() {
 
           <div className="proof-content">
             <img className="proof-seal" src={assetUrl("astral-chart.png")} alt="Космическая печать" />
-            <p className="proof-code">{reason.code}</p>
+            <p className="proof-code">{reading.code}</p>
             <p className="proof-date">{formatDate(selectedDate)}</p>
-            <h2 id="proof-title">Работа сегодня противопоказана</h2>
+            <h2 id="proof-title">{reading.proofTitle}</h2>
             <div className="proof-rule" />
             <dl>
-              <div><dt>Основание</dt><dd>{reason.planet}</dd></div>
-              <div><dt>Сектор</dt><dd>{reason.house.replace(/^в |^над |^у |^на /, "")}</dd></div>
-              <div><dt>Риск переделки</dt><dd>{reason.risk}%</dd></div>
-              <div><dt>Личный знак</dt><dd>{reason.personalMark} · {rerollCount > 0 ? `переброс ${rerollCount}` : "исходный"}</dd></div>
-              <div><dt>Статус</dt><dd>Освобождён от задач</dd></div>
+              <div><dt>Шанс на работу</dt><dd>{reading.chance}%</dd></div>
+              <div><dt>Основание</dt><dd>{reading.planet}</dd></div>
+              <div><dt>Сектор</dt><dd>{reading.house.replace(/^в |^над |^у |^на /, "")}</dd></div>
+              <div><dt>Риск переделки</dt><dd>{reading.risk}%</dd></div>
+              <div><dt>Личный знак</dt><dd>{reading.personalMark} · {rerollCount > 0 ? `переброс ${rerollCount}` : "исходный"}</dd></div>
+              <div><dt>Статус</dt><dd>{reading.status}</dd></div>
             </dl>
-            <p className="proof-explanation">{reason.explanation}</p>
+            <p className="proof-explanation">{reading.explanation}</p>
             <p className="proof-valid">Действует до следующего рассвета</p>
           </div>
 
